@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
+import { PasswordUtil } from './password.util';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,8 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('user not found');
     }
-    Object.assign(user, attrs);
+    const hashPassword = await PasswordUtil.hashPassword(attrs.password);
+    Object.assign(user, { password: hashPassword });
     return this.repo.save(user);
   }
 
