@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes, scrypt as _scrypt } from 'crypto';
+import { promisify } from 'util';
 import { User } from './user.entity';
-import { PasswordUtil } from './password.util';
+
+const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class UsersService {
@@ -30,7 +33,11 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('user not found');
     }
-    const hashPassword = await PasswordUtil.hashPassword(attrs.password);
+
+    const salt = randomBytes(8).toString('hex');
+    const hash = (await scrypt(attrs.password, salt, 32)) as Buffer;
+    const hashPassword = salt + '.' + hash.toString('hex');
+
     Object.assign(user, { password: hashPassword });
     return this.repo.save(user);
   }

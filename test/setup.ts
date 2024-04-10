@@ -1,8 +1,12 @@
 import { rm } from 'fs/promises';
 import { join } from 'path';
+import { DataSource } from 'typeorm';
+import dbConfig from '../src/ormconfig';
 
-global.beforeEach(async () => {
-  try {
-    await rm(join(__dirname, '..', 'test.sqlite'));
-  } catch (err) {}
-});
+export const AppDataSource = new DataSource(dbConfig);
+
+AppDataSource.initialize()
+  .then(() => {
+    rm(join(__dirname, '..', 'test.sqlite'));
+  })
+  .catch((error) => console.log(error));
